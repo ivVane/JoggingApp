@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">JoggingApp</string>
+
+    // Api key for google maps service
+    <string name="google_maps_key" translatable="false">AIzaSyC_A4gsmnw3ZVURtglxzil-lUNlqE8I_6M</string>
+    <string-array name="filter_options">
+        <item>Date</item>
+        <item>Running Time</item>
+        <item>Distance</item>
+        <item>Average Speed</item>
+        <item>Calories Burned</item>
+    </string-array>
 </resources>

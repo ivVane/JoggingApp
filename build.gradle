@@ -23,6 +23,8 @@ allprojects {
     repositories {
         google()
         jcenter()
+
+        // Needed for 'com.github.PhilJay:MPAndroidChart:v3.1.0' to work.
         maven { url "https://jitpack.io" }
     }
 }
