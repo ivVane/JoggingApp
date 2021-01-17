@@ -5,6 +5,7 @@ plugins {
     id 'kotlin-android-extensions'
     id 'kotlin-kapt'
     id "androidx.navigation.safeargs.kotlin"
+    id 'dagger.hilt.android.plugin'
 }
 
 android {
@@ -78,6 +79,16 @@ dependencies {
     // Google Maps Location Services
     implementation "com.google.android.gms:play-services-location:$playServicesLocationVersion"
     implementation "com.google.android.gms:play-services-maps:$playServicesMapsVersion"
+
+    // Activity KTX for viewModels()
+    implementation "androidx.activity:activity-ktx:$activityKtxVersion"
+
+    //Dagger - Hilt
+    implementation "com.google.dagger:hilt-android:$daggerHiltVersion"
+    kapt "com.google.dagger:hilt-android-compiler:$daggerHiltVersion"
+
+    implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltAndroidXVersion"
+    kapt "androidx.hilt:hilt-compiler:$hiltAndroidXVersion"
 
     // Easy Permissions
     implementation 'pub.devrel:easypermissions:3.0.0'
