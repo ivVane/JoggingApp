@@ -1,11 +1,14 @@
 package com.joggingapp.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.google.android.gms.maps.GoogleMap
 import com.joggingapp.R
+import com.joggingapp.other.Constants.ACTION_START_OR_RESUME_SERVICE
+import com.joggingapp.services.TrackingService
 import com.joggingapp.ui.viewmodels.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_tracking.*
@@ -21,11 +24,20 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         super.onViewCreated(view, savedInstanceState)
 
         mapView.onCreate(savedInstanceState)
-
+        material_button_toggle_run.setOnClickListener {
+            sendCommandToService(ACTION_START_OR_RESUME_SERVICE)
+        }
         mapView.getMapAsync {
             map = it
         }
     }
+
+    private fun sendCommandToService(action: String) =
+        Intent(requireContext(), TrackingService::class.java).also {
+            it.action = action
+            requireContext().startService(it)
+        }
+
 
     override fun onResume() {
         super.onResume()
@@ -53,7 +65,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
     }
 
     // We are calling the map Asynchronisly (mapView.getMapAsync), and the app needs to load the
-    // map every time we open our device. The function under (onSaveInstanceState()) can helping us
+    // map every time we open our device. The function under (onSaveInstanceState()) can help us
     // to cache the map so the app don't need to loaded every time we open our device.
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
