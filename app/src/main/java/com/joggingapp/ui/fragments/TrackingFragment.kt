@@ -65,7 +65,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
     }
 
     // We are calling the map Asynchronisly (mapView.getMapAsync), and the app needs to load the
-    // map every time we open our device. The function under (onSaveInstanceState()) can help us
+    // map every time we open our device. This function (onSaveInstanceState()) can help us
     // to cache the map so the app don't need to loaded every time we open our device.
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
