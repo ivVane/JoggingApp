@@ -32,8 +32,13 @@ import com.joggingapp.other.Constants.LOCATION_UPDATE_INTERVAL
 import com.joggingapp.other.Constants.NOTIFICATION_CHANNEL_ID
 import com.joggingapp.other.Constants.NOTIFICATION_CHANNEL_NAME
 import com.joggingapp.other.Constants.NOTIFICATION_ID
+import com.joggingapp.other.Constants.TIMER_UPDATE_INTERVAL
 import com.joggingapp.other.TrackingUtility
 import com.joggingapp.ui.MainActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 typealias Polyline = MutableList<LatLng>
@@ -45,7 +50,12 @@ class TrackingService : LifecycleService() {
 
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
+    // Current timeRun in seconds, timeRun we want to show in our notifications.
+    private val timeRunInSeconds = MutableLiveData<Long>()
+
     companion object {
+        // Current timeRun in milli seconds, accurate run time we want to have in our TrackingFragment.
+        val timeRunInMillis = MutableLiveData<Long>()
         val isTracking = MutableLiveData<Boolean>()
 
         //val pathPoints = MutableLiveData<MutableList<MutableList<LatLng>>>()
@@ -56,6 +66,8 @@ class TrackingService : LifecycleService() {
     private fun postInitialValues() {
         isTracking.postValue(false)
         pathPoints.postValue(mutableListOf())
+        timeRunInSeconds.postValue(0L)
+        timeRunInMillis.postValue(0L)
     }
 
     override fun onCreate() {
@@ -77,7 +89,7 @@ class TrackingService : LifecycleService() {
                         isFirstRun = false
                     } else {
                         Timber.d("Resuming service...")
-                        startForegroundService()
+                        startTimer()
                     }
                 }
                 ACTION_PAUSE_SERVICE -> {
@@ -92,8 +104,48 @@ class TrackingService : LifecycleService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
+    private var isTimerEnabled = false
+
+    // @lapTime - When we start the run (click on start Start Run or Start Timer)
+    // and after some time we stop the run (click on Stop Run) we add the lap time to this variable.
+    // But after we continue the run and click Resume Run this timer will start from 0.
+    private var lapTime = 0L
+
+    // @timeRun - Variable to save the total time run. The total time of our run.
+    // For example: The time of all our laps (lapTime) edit together.
+    private var timeRun = 0L
+    private var timeStarted = 0L
+    private var lastSecondTimeStamp = 0L
+
+    // Function that starts our timer, also a function that track the actual time and
+    // trigger our Observers and LiveData.
+    private fun startTimer() {
+        addEmptyPolyline()
+        isTracking.postValue(true)
+        timeStarted = System.currentTimeMillis()
+        isTimerEnabled = true
+        CoroutineScope(Dispatchers.Main).launch {
+            while (isTracking.value!!) {
+                // Time difference between now and timeStarted
+                lapTime = System.currentTimeMillis() - timeStarted
+
+                // Post the new lapTime
+                timeRunInMillis.postValue(timeRun + lapTime)
+
+                if (timeRunInMillis.value!! >= lastSecondTimeStamp + 1000L) {
+                    timeRunInSeconds.postValue(timeRunInSeconds.value!! + 1)
+                    lastSecondTimeStamp += 1000L
+                }
+                delay(TIMER_UPDATE_INTERVAL)
+            }
+            timeRun += lapTime
+        }
+    }
+
+
     private fun pauseService() {
         isTracking.postValue(false)
+        isTimerEnabled = false
     }
 
     @SuppressLint("MissingPermission")
@@ -149,7 +201,7 @@ class TrackingService : LifecycleService() {
     // a Foreground Service we also need to launch that Service with Intent (getMainActivityPendingIntent())
     // which lead us to the MainActivity when that intent is clicked.
     private fun startForegroundService() {
-        addEmptyPolyline()
+        startTimer()
         isTracking.postValue(true)
 
         val notificationManager =
