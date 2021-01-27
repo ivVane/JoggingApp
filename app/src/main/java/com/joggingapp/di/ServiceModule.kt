@@ -30,6 +30,7 @@ object ServiceModule {
 
     // Function that is sending(creating) an Intent so we can open Tracking Fragment directly by
     // clicking on a Notification
+    @ServiceScoped
     @Provides
     fun provideMainActivityPendingIntent(
         @ApplicationContext app: Context
